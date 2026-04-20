@@ -33,3 +33,8 @@ CREATE OR REPLACE FUNCTION auth.uid() RETURNS uuid
       )::jsonb->>'sub'
     )::uuid
   $$;
+
+-- `authenticated` role needs to reach into the `auth` schema so RLS policies
+-- that reference `auth.uid()` evaluate correctly.
+GRANT USAGE ON SCHEMA auth TO authenticated;
+GRANT EXECUTE ON FUNCTION auth.uid() TO authenticated;
