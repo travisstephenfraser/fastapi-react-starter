@@ -34,9 +34,7 @@ def upgrade() -> None:
             primary_key=True,
             server_default=sa.text("gen_random_uuid()"),
         ),
-        sa.Column(
-            "user_id", sa.dialects.postgresql.UUID(as_uuid=True), nullable=False, index=True
-        ),
+        sa.Column("user_id", sa.dialects.postgresql.UUID(as_uuid=True), nullable=False),
         sa.Column("name", sa.String(200), nullable=False),
         sa.Column("description", sa.String(2000), nullable=True),
         sa.Column(
