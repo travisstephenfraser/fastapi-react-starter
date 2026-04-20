@@ -124,6 +124,9 @@ jobs:
         run: |
           cd frontend
           npx openapi-typescript ../backend/openapi.json -o /tmp/api.d.ts
+          # openapi-typescript emits 4-space indent; committed version is
+          # prettier-formatted (2-space). Normalize before diffing.
+          npx prettier --write /tmp/api.d.ts
       - name: Diff against committed types
         run: |
           diff -u frontend/src/types/api.d.ts /tmp/api.d.ts || { \
