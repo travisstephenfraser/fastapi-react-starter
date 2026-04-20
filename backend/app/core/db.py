@@ -50,7 +50,7 @@ AsyncSessionLocal = async_sessionmaker(engine, expire_on_commit=False)
 # the case where someone accidentally used `SET` without `LOCAL`. Event fires on
 # the underlying sync engine; SQLAlchemy async wraps it.
 @event.listens_for(engine.sync_engine, "reset")
-def _discard_all_on_reset(dbapi_connection: Any, connection_record: Any) -> None:  # noqa: ARG001
+def _discard_all_on_reset(dbapi_connection: Any, _connection_record: Any) -> None:
     cursor = dbapi_connection.cursor()
     try:
         cursor.execute("DISCARD ALL")

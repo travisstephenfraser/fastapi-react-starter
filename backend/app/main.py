@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from contextlib import asynccontextmanager
 from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -21,7 +21,7 @@ def _client_ip(request: Request) -> str:
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI) -> AsyncIterator[None]:  # noqa: ARG001
+async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
     configure_logging()
     verify_startup()  # fetch JWKS once, assert issuer match — fail fast on misconfig
     logger.info("app.startup", env=settings.env)
