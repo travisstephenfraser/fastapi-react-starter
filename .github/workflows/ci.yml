@@ -1,0 +1,189 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16.4-alpine
+        env:
+          POSTGRES_USER: starter_owner
+          POSTGRES_PASSWORD: starter_dev_password_change_me
+          POSTGRES_DB: starter
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd="pg_isready -U starter_owner -d starter"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=10
+    defaults:
+      run:
+        working-directory: backend
+    env:
+      DATABASE_URL: postgresql+asyncpg://starter_owner:starter_dev_password_change_me@localhost:5432/starter
+      SUPABASE_URL: https://test.local.invalid
+      SUPABASE_ANON_KEY: test-anon
+      JWT_AUD: authenticated
+      CORS_ORIGINS: http://localhost:5173
+      ENV: dev
+      TEMPLATE_EXAMPLE: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install uv
+        run: pip install uv
+      - name: Install deps
+        run: uv sync
+      - name: Apply init-roles.sql
+        run: |
+          psql "postgresql://starter_owner:starter_dev_password_change_me@localhost:5432/starter" \
+            -f scripts/init-roles.sql
+      - name: Run migrations
+        run: uv run alembic upgrade head
+      - name: Lint (ruff)
+        run: uv run ruff check .
+      - name: Typecheck (mypy)
+        run: uv run mypy app
+      - name: Tests
+        run: uv run pytest -q
+
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - name: Secret-prefix lint
+        run: |
+          if grep -RIn --exclude-dir=node_modules -E 'VITE_[A-Za-z_]*(SECRET|SERVICE|PRIVATE)' src .env.example 2>/dev/null; then
+            echo "Found forbidden VITE_ secret prefix."
+            exit 1
+          fi
+      - name: Lint
+        run: npm run lint
+      - name: Typecheck
+        run: npx tsc --noEmit
+      - name: Prettier check
+        run: npm run format:check
+      - name: Tests
+        run: npm run test
+      - name: Build
+        run: npm run build
+
+  drift-check:
+    runs-on: ubuntu-latest
+    needs: [backend]
+    env:
+      DATABASE_URL: postgresql+asyncpg://starter_owner:starter_dev_password_change_me@localhost:5432/starter
+      SUPABASE_URL: https://test.local.invalid
+      SUPABASE_ANON_KEY: test-anon
+      JWT_AUD: authenticated
+      CORS_ORIGINS: http://localhost:5173
+      ENV: dev
+      TEMPLATE_EXAMPLE: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Install uv + Python deps
+        run: |
+          pip install uv
+          cd backend && uv sync
+      - name: Install frontend deps
+        run: cd frontend && npm ci
+      - name: Regenerate openapi.json
+        run: |
+          cd backend
+          uv run python scripts/export_openapi.py --stdout > /tmp/openapi.generated.json
+      - name: Diff against committed openapi.json
+        run: |
+          diff -u backend/openapi.json /tmp/openapi.generated.json || { \
+            echo "::error::backend/openapi.json is stale. Run 'make openapi' and commit."; \
+            exit 1; \
+          }
+      - name: Regenerate types
+        run: |
+          cd frontend
+          npx openapi-typescript ../backend/openapi.json -o /tmp/api.d.ts
+      - name: Diff against committed types
+        run: |
+          diff -u frontend/src/types/api.d.ts /tmp/api.d.ts || { \
+            echo "::error::frontend/src/types/api.d.ts is stale. Run 'make types' and commit."; \
+            exit 1; \
+          }
+
+  schema-diff:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16.4-alpine
+        env:
+          POSTGRES_USER: starter_owner
+          POSTGRES_PASSWORD: starter_dev_password_change_me
+          POSTGRES_DB: starter
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd="pg_isready -U starter_owner -d starter"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=10
+    env:
+      DATABASE_URL: postgresql+asyncpg://starter_owner:starter_dev_password_change_me@localhost:5432/starter
+      SUPABASE_URL: https://test.local.invalid
+      SUPABASE_ANON_KEY: test-anon
+      JWT_AUD: authenticated
+      CORS_ORIGINS: http://localhost:5173
+      ENV: dev
+      TEMPLATE_EXAMPLE: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install uv + Python deps
+        run: |
+          pip install uv
+          cd backend && uv sync
+      - name: Apply init + migrate
+        run: |
+          psql "postgresql://starter_owner:starter_dev_password_change_me@localhost:5432/starter" \
+            -f backend/scripts/init-roles.sql
+          cd backend && uv run alembic upgrade head
+      - name: pg_dump schema
+        run: |
+          pg_dump --schema-only \
+            -d "postgresql://starter_owner:starter_dev_password_change_me@localhost:5432/starter" \
+            -f /tmp/schema.sql
+          # Strip lines that differ per-run (comments, version strings).
+          sed -i '/^--/d; /^$/d; /^SET /d' /tmp/schema.sql
+      - name: Diff against committed schema.sql
+        run: |
+          if [ -f backend/schema.sql ]; then
+            sed -i '/^--/d; /^$/d; /^SET /d' backend/schema.sql
+            diff -u backend/schema.sql /tmp/schema.sql || { \
+              echo "::error::backend/schema.sql does not match alembic state. Regenerate + commit."; \
+              exit 1; \
+            }
+          else
+            echo "backend/schema.sql not yet committed. Current schema:"
+            cat /tmp/schema.sql
+            echo "Commit this as backend/schema.sql to activate drift detection."
+          fi

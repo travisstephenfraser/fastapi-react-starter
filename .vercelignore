@@ -1,0 +1,8 @@
+backend/
+docs/
+*.md
+!frontend/**/*.md
+.github/
+.pre-commit-config.yaml
+docker-compose.yml
+Makefile

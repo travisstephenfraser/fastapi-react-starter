@@ -1,0 +1,30 @@
+name: keep-warm
+
+# Supabase Free pauses projects after 7 days of inactivity. This hits a
+# user-configured health URL every 6 days to keep the project awake.
+#
+# Setup: add a repo secret `HEALTH_URL` pointing to your deployed backend's
+# `/health` endpoint (e.g. https://api.your-app.example.com/health).
+# The action is a no-op if the secret is missing.
+#
+# Remove this workflow once you upgrade to Supabase Pro.
+
+on:
+  schedule:
+    - cron: "0 12 */6 * *"  # every 6 days at 12:00 UTC
+  workflow_dispatch: {}
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping health endpoint
+        env:
+          HEALTH_URL: ${{ secrets.HEALTH_URL }}
+        run: |
+          if [ -z "$HEALTH_URL" ]; then
+            echo "HEALTH_URL secret not set; skipping."
+            exit 0
+          fi
+          curl --silent --show-error --fail --max-time 30 "$HEALTH_URL" \
+            || { echo "::error::keep-warm ping failed"; exit 1; }

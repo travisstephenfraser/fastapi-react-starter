@@ -1,0 +1,28 @@
+# Local Postgres for offline dev. Supabase cloud is the "real" backend target,
+# but this keeps the template runnable without internet and pins the Postgres
+# version we test against in CI.
+#
+# Image pinned by digest for reproducibility — update deliberately.
+
+services:
+  postgres:
+    image: postgres:16.4-alpine@sha256:8d9b76c3f7cde7af8e8ff7eef3b3d83eef6ebb0f3b1de1b2c20a6f0cf33ea42d
+    container_name: starter-postgres
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:5432:5432"  # loopback-only; do not expose
+    environment:
+      POSTGRES_USER: starter_owner
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-starter_dev_password_change_me}
+      POSTGRES_DB: starter
+    volumes:
+      - starter_pgdata:/var/lib/postgresql/data
+      - ./backend/scripts/init-roles.sql:/docker-entrypoint-initdb.d/10-roles.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U starter_owner -d starter"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  starter_pgdata:
