@@ -52,8 +52,10 @@ ignore = [
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/**" = ["S", "B"]
-"**/tests/**" = ["S", "B"]
+# Tests use subprocess, Path, and synchronous DB drivers inside async fixtures
+# legitimately — these rules apply to production handlers, not test setup.
+"tests/**" = ["S", "B", "ASYNC", "TID251"]
+"**/tests/**" = ["S", "B", "ASYNC", "TID251"]
 # Alembic is framework scaffolding — don't fight its layout conventions.
 "alembic/**" = ["I001"]
 

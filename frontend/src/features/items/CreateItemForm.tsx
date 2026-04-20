@@ -25,7 +25,7 @@ export function CreateItemForm() {
   };
 
   return (
-    <Form onSubmit={onSubmit} className="rounded-lg border border-border p-4">
+    <Form onSubmit={onSubmit} className="border-border rounded-lg border p-4">
       <FormField>
         <FormLabel htmlFor="name">Name</FormLabel>
         <Input

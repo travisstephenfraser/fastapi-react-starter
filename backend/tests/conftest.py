@@ -25,13 +25,12 @@ def postgres_container() -> Generator[PostgresContainer, None, None]:
     with PostgresContainer("postgres:16.4-alpine").with_bind_ports(5432, None) as pg:
         # Run init-roles.sql to set up `authenticated` role and auth.uid().
         init_sql = INIT_SQL.read_text()
-        dsn_sync = pg.get_connection_url()  # postgresql+psycopg2://...
-        import psycopg2
+        dsn_sync = pg.get_connection_url()  # testcontainers returns psycopg2-style DSN
+        import psycopg  # psycopg3 (project dep)
 
-        with psycopg2.connect(dsn_sync.replace("postgresql+psycopg2://", "postgresql://")) as conn:
-            conn.autocommit = True
-            with conn.cursor() as cur:
-                cur.execute(init_sql)
+        conn_str = dsn_sync.replace("postgresql+psycopg2://", "postgresql://")
+        with psycopg.connect(conn_str, autocommit=True) as conn, conn.cursor() as cur:
+            cur.execute(init_sql)
         yield pg
 
 

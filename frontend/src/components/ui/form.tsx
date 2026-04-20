@@ -21,16 +21,17 @@ export const FormField = React.forwardRef<HTMLDivElement, React.HTMLAttributes<H
 );
 FormField.displayName = "FormField";
 
-export const FormLabel = React.forwardRef<HTMLLabelElement, React.LabelHTMLAttributes<HTMLLabelElement>>(
-  ({ className, ...props }, ref) => (
-    <label ref={ref} className={cn("text-sm font-medium", className)} {...props} />
-  ),
-);
+export const FormLabel = React.forwardRef<
+  HTMLLabelElement,
+  React.LabelHTMLAttributes<HTMLLabelElement>
+>(({ className, ...props }, ref) => (
+  <label ref={ref} className={cn("text-sm font-medium", className)} {...props} />
+));
 FormLabel.displayName = "FormLabel";
 
 export const FormError = React.forwardRef<HTMLSpanElement, React.HTMLAttributes<HTMLSpanElement>>(
   ({ className, ...props }, ref) => (
-    <span ref={ref} className={cn("text-sm text-destructive", className)} {...props} />
+    <span ref={ref} className={cn("text-destructive text-sm", className)} {...props} />
   ),
 );
 FormError.displayName = "FormError";

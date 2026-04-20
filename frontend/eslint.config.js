@@ -87,13 +87,7 @@ export default [
             { from: ["app"], allow: ["core", "page", "ui", "lib", "feature"] },
             {
               from: ["feature"],
-              allow: [
-                ["feature", { feature: "${from.feature}" }],
-                "ui",
-                "lib",
-                "types",
-                "core",
-              ],
+              allow: [["feature", { feature: "${from.feature}" }], "ui", "lib", "types", "core"],
             },
             { from: ["page"], allow: ["feature", "ui", "lib", "core", "types"] },
             { from: ["core"], allow: ["lib", "types"] },
