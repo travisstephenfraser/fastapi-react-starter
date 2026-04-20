@@ -7,7 +7,7 @@ to check before upgrading.
 
 | Package | Pin | Why pinned |
 |---|---|---|
-| `tailwindcss` | `4.0.0` | v4 changed config format; check migration guide before upgrade |
+| `tailwindcss` | `3.4.13` | Pinned on v3 — v4 is a rewrite (new `@theme` + PostCSS plugin). Revisit after v4 ecosystem settles. |
 | `react-router-dom` | `7.1.1` | v7 changed loader semantics and split package names |
 | shadcn CLI pin | `2.1.0` | Registry layout + command syntax move; pin the CLI, not components |
 
@@ -35,7 +35,7 @@ to check before upgrading.
 | `@tanstack/react-query` | `5.x` | |
 | `@supabase/supabase-js` | `2.45.x` | v3 is in preview as of 2026-04; hold until GA |
 | `openapi-typescript` | `7.4.x` | Pin; output format changes between majors |
-| `tailwindcss` | `4.0.0` | See table above |
+| `tailwindcss` | `3.4.13` | See table above |
 | `eslint-plugin-boundaries` | `4.2.x` | Enforces the feature-slice mirror |
 
 ## CLI tools

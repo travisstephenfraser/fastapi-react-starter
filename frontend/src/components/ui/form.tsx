@@ -31,7 +31,7 @@ FormLabel.displayName = "FormLabel";
 
 export const FormError = React.forwardRef<HTMLSpanElement, React.HTMLAttributes<HTMLSpanElement>>(
   ({ className, ...props }, ref) => (
-    <span ref={ref} className={cn("text-destructive text-sm", className)} {...props} />
+    <span ref={ref} className={cn("text-sm text-destructive", className)} {...props} />
   ),
 );
 FormError.displayName = "FormError";

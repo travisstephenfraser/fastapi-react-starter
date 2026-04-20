@@ -15,7 +15,7 @@ export default function App() {
   }, []);
 
   if (session === undefined) {
-    return <div className="text-muted-foreground p-8">Loading…</div>;
+    return <div className="p-8 text-muted-foreground">Loading…</div>;
   }
 
   return (

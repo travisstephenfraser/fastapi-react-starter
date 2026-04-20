@@ -27,9 +27,13 @@ USER_B = uuid.UUID("00000000-0000-0000-0000-000000000002")
 
 
 async def _set_claims(session: AsyncSession, user_id: uuid.UUID) -> None:
-    await session.execute(text("SET LOCAL role = 'authenticated'"))
+    # Use set_config (parameter-bindable) instead of SET LOCAL (not bindable).
     await session.execute(
-        text("SET LOCAL request.jwt.claims = :c"),
+        text("SELECT set_config('role', :role, true)"),
+        {"role": "authenticated"},
+    )
+    await session.execute(
+        text("SELECT set_config('request.jwt.claims', :c, true)"),
         {"c": json.dumps({"sub": str(user_id), "role": "authenticated"})},
     )
 

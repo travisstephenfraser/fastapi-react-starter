@@ -74,11 +74,15 @@ async def _get_session_with_claims(claims: dict[str, Any]) -> AsyncGenerator[Asy
                 for k in ("sub", "role", "email", "aud")
                 if k in claims
             }
+            # `SET LOCAL` doesn't accept bound parameters (Postgres SET has no
+            # prepared-statement form). Use the `set_config(name, value, is_local=true)`
+            # function equivalent, which does.
             await session.execute(
-                text("SET LOCAL role = :role"), {"role": settings.app_db_role}
+                text("SELECT set_config('role', :role, true)"),
+                {"role": settings.app_db_role},
             )
             await session.execute(
-                text("SET LOCAL request.jwt.claims = :claims"),
+                text("SELECT set_config('request.jwt.claims', :claims, true)"),
                 {"claims": json.dumps(minimal_claims)},
             )
             yield session

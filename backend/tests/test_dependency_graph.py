@@ -16,13 +16,18 @@ from app.main import app
 
 
 def _dependency_names(route: APIRoute) -> set[str]:
-    """Walk the endpoint's dependency tree and collect function names."""
+    """Walk the endpoint's dependency tree and collect callable names.
+
+    Functions expose `__name__`; callable class instances (e.g. `HTTPBearer()`
+    from fastapi.security) don't, so fall back to the type's name.
+    """
     names: set[str] = set()
     stack = [route.dependant]
     while stack:
         dep = stack.pop()
         if dep.call is not None:
-            names.add(dep.call.__name__)
+            name = getattr(dep.call, "__name__", None) or type(dep.call).__name__
+            names.add(name)
         stack.extend(dep.dependencies)
     return names
 

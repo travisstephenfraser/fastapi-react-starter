@@ -20,7 +20,7 @@ export const Toast = React.forwardRef<HTMLDivElement, ToastProps>(
       ref={ref}
       role="status"
       className={cn(
-        "fixed right-4 bottom-4 z-50 flex max-w-sm flex-col gap-1 rounded-md border p-4 shadow-md",
+        "fixed bottom-4 right-4 z-50 flex max-w-sm flex-col gap-1 rounded-md border p-4 shadow-md",
         variant === "default" && "border-border bg-background text-foreground",
         variant === "destructive" &&
           "border-destructive bg-destructive text-destructive-foreground",
