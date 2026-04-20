@@ -78,7 +78,10 @@ be-lint:
 # Frontend
 
 fe-install:
-	cd frontend && npm ci
+	@# Use npm install (not npm ci) so first-clone works before a lock file exists.
+	@# After your first `make setup`, commit `frontend/package-lock.json` and switch
+	@# CI/local to `npm ci` for reproducible installs.
+	cd frontend && npm install
 
 fe-dev:
 	cd frontend && npm run dev

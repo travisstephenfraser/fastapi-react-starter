@@ -37,8 +37,8 @@ class Settings(BaseSettings):
 
     @property
     def database_url_sync(self) -> str:
-        """Same DSN but sync-driver, for Alembic and pg_dump helpers."""
-        return self.database_url.replace("postgresql+asyncpg://", "postgresql://")
+        """Same DSN but sync-driver (psycopg3), for Alembic and pg_dump helpers."""
+        return self.database_url.replace("postgresql+asyncpg://", "postgresql+psycopg://")
 
     @property
     def jwt_issuer(self) -> str:

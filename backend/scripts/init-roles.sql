@@ -19,18 +19,10 @@ GRANT authenticated TO authenticator;
 GRANT USAGE ON SCHEMA public TO authenticated;
 
 -- Mimic Supabase's `auth.uid()` function for local parity. On Supabase this is
--- provided by the `auth` extension; here it reads from `request.jwt.claims`.
+-- provided by the `auth` extension; here it reads from `request.jwt.claims`
+-- (set per-transaction by `get_db_with_claims`). Returns NULL when no claims
+-- are set, which RLS policies using `user_id = auth.uid()` correctly reject.
 CREATE SCHEMA IF NOT EXISTS auth;
-CREATE OR REPLACE FUNCTION auth.uid() RETURNS uuid
-  LANGUAGE sql STABLE
-  AS $$
-    SELECT COALESCE(
-      NULLIF(current_setting('request.jwt.claims', true), ''),
-      '{}'
-    )::jsonb->>'sub'
-  $$;
--- Note: returns text-to-uuid cast; uses `sub` from the JWT claims JSON.
--- We overload to return uuid explicitly for parity with Supabase's signature.
 CREATE OR REPLACE FUNCTION auth.uid() RETURNS uuid
   LANGUAGE sql STABLE
   AS $$

@@ -16,6 +16,9 @@ dependencies = [
     "structlog>=24.4,<25.0",
     "slowapi>=0.1.9,<0.2",
     "python-multipart>=0.0.12",
+    # Sync driver for Alembic (async driver asyncpg is used by the app at runtime).
+    # psycopg3 binary wheels ship for Linux/macOS/Windows; no compilation.
+    "psycopg[binary]>=3.2,<4.0",
 ]
 
 [dependency-groups]
