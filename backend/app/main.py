@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+from typing import Any, cast
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -45,7 +46,10 @@ def create_app() -> FastAPI:
     )
 
     app.state.limiter = limiter
-    app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+    # slowapi's handler signature is (Request, RateLimitExceeded) -> Response;
+    # Starlette wants (Request, Exception) -> Response. Cast to Any so this
+    # works regardless of whether slowapi's type stubs are loaded.
+    app.add_exception_handler(RateLimitExceeded, cast(Any, _rate_limit_exceeded_handler))
 
     origins = settings.cors_origins_list()
     if origins:

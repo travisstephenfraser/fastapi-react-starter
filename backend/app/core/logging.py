@@ -9,6 +9,7 @@ from __future__ import annotations
 import logging
 import re
 import sys
+from collections.abc import MutableMapping
 from typing import Any
 
 import structlog
@@ -31,7 +32,9 @@ SENSITIVE_FIELDS: tuple[str, ...] = (
 _SENSITIVE_RE = re.compile("|".join(SENSITIVE_FIELDS), re.IGNORECASE)
 
 
-def _redact(_: Any, __: str, event_dict: dict[str, Any]) -> dict[str, Any]:
+def _redact(
+    _logger: Any, _method_name: str, event_dict: MutableMapping[str, Any]
+) -> MutableMapping[str, Any]:
     for k in list(event_dict.keys()):
         if _SENSITIVE_RE.search(k):
             event_dict[k] = "[REDACTED]"

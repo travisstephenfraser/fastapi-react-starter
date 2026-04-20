@@ -23,5 +23,8 @@ export default defineConfig({
     globals: true,
     environment: "jsdom",
     setupFiles: ["./src/test/setup.ts"],
+    // Survives `make clean-example` — after the example slice is stripped,
+    // a fork may not have tests yet. Remove this once your first test lands.
+    passWithNoTests: true,
   },
 });
