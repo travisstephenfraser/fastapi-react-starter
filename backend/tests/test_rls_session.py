@@ -18,6 +18,7 @@ import uuid
 from typing import Any
 
 import pytest
+import sqlalchemy.exc
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -60,7 +61,9 @@ async def test_rls_rejects_cross_user_insert(session: AsyncSession) -> None:
     """User A cannot INSERT a row with user_id = USER_B (WITH CHECK must reject)."""
     async with session.begin():
         await _set_claims(session, USER_A)
-        with pytest.raises(Exception):  # noqa: B017 — any DB error is acceptable
+        # RLS rejects cross-user INSERTs at the DB layer; asyncpg surfaces it
+        # as a DBAPIError (subclass of sqlalchemy.exc.DBAPIError).
+        with pytest.raises(sqlalchemy.exc.DBAPIError):
             await session.execute(
                 text("INSERT INTO items (user_id, name) VALUES (:u, :n)"),
                 {"u": str(USER_B), "n": "malicious"},

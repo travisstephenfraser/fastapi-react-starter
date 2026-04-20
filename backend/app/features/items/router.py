@@ -10,10 +10,10 @@ from __future__ import annotations
 
 import uuid
 
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 
-from app.core.deps import CurrentUser, DbSession
+from app.core.deps import CurrentUser, DbSession, get_current_user
 from app.features.items.model import Item
 from app.features.items.schema import ItemCreate, ItemOut
 
@@ -42,8 +42,10 @@ async def create_item(payload: ItemCreate, db: DbSession, user: CurrentUser) -> 
     return item
 
 
-@router.get("/{item_id}", response_model=ItemOut)
-async def get_item(item_id: uuid.UUID, db: DbSession, user: CurrentUser) -> Item:  # noqa: ARG001
+@router.get("/{item_id}", response_model=ItemOut, dependencies=[Depends(get_current_user)])
+async def get_item(item_id: uuid.UUID, db: DbSession) -> Item:
+    # Auth runs via the route-level `dependencies` above; handler doesn't need
+    # to bind the claims dict because RLS scopes the query automatically.
     item = await db.get(Item, item_id)
     # RLS blocks cross-user reads; `db.get` returning None is either
     # "doesn't exist" or "exists and belongs to another user" — surface one

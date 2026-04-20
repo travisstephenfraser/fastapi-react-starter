@@ -1,5 +1,5 @@
 // TEMPLATE: example
-import { useState } from "react";
+import { useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormField, FormLabel, FormError } from "@/components/ui/form";
@@ -10,7 +10,7 @@ export function CreateItemForm() {
   const [description, setDescription] = useState("");
   const create = useCreateItem();
 
-  const onSubmit = (e: React.FormEvent) => {
+  const onSubmit = (e: FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return;
     create.mutate(

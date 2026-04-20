@@ -18,6 +18,24 @@ export default [
   {
     ignores: ["dist/**", "node_modules/**", "src/types/api.d.ts"],
   },
+  // Config files run in Node. Keep them on a looser ruleset.
+  {
+    files: ["*.config.{ts,js,mjs,cjs}", "vite.config.ts", "tailwind.config.ts"],
+    languageOptions: {
+      parser: tsParser,
+      parserOptions: {
+        ecmaVersion: 2022,
+        sourceType: "module",
+      },
+      globals: {
+        ...globals.node,
+      },
+    },
+    rules: {
+      ...js.configs.recommended.rules,
+      "no-undef": "off",
+    },
+  },
   {
     files: ["**/*.{ts,tsx}"],
     languageOptions: {
@@ -52,6 +70,12 @@ export default [
     rules: {
       ...js.configs.recommended.rules,
       ...tsPlugin.configs.recommended.rules,
+      // TypeScript handles undefined-identifier detection. Leaving ESLint's
+      // no-undef on produces false positives for DOM types (RequestInit,
+      // HTMLElement, etc.) and the `React` namespace under `jsx: react-jsx`.
+      "no-undef": "off",
+      // Empty-extending interfaces for prop types are a common React pattern.
+      "@typescript-eslint/no-empty-object-type": "off",
       "react-hooks/rules-of-hooks": "error",
       "react-hooks/exhaustive-deps": "warn",
       "@typescript-eslint/no-unused-vars": ["warn", { argsIgnorePattern: "^_" }],

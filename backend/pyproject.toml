@@ -54,6 +54,11 @@ ignore = [
 [tool.ruff.lint.per-file-ignores]
 "tests/**" = ["S", "B"]
 "**/tests/**" = ["S", "B"]
+# Alembic is framework scaffolding — don't fight its layout conventions.
+"alembic/**" = ["I001"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["app"]
 
 [tool.ruff.lint.flake8-tidy-imports.banned-api]
 # Block blocking libraries inside async route handlers. The escape hatch is

@@ -12,7 +12,7 @@ from typing import Any
 
 import httpx
 import jwt
-from jwt import PyJWKClient, PyJWKSet
+from jwt import PyJWKSet
 from jwt.exceptions import InvalidTokenError
 
 from app.core.config import settings
